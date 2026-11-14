@@ -31,6 +31,11 @@
   .toplink{font-size:11px;color:var(--muted);text-decoration:none;padding:6px 10px;border:1px solid var(--line);
     border-radius:20px;background:var(--panel);white-space:nowrap}
   .toplink:active{transform:scale(.96)}
+  .dlbtn{font-size:12px;font-weight:600;color:var(--ink);text-decoration:none;padding:8px 14px;
+    border-radius:12px;background:var(--panel);white-space:nowrap;cursor:pointer;
+    display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
+  .dlbtn:active{transform:scale(.96)}
+  @media(max-width:768px){.dlbtn{font-size:11px;padding:7px 10px}}
   .add-btn{flex:0 0 auto;width:40px;height:40px;border-radius:12px;border:none;cursor:pointer;
     background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;font-size:24px;line-height:1;
     display:grid;place-items:center;box-shadow:0 4px 14px rgba(229,9,20,.45)}
@@ -667,6 +672,7 @@ input,select,textarea{border:1px solid var(--line)!important}
     </div>
     <div class="spacer"></div>
     <a class="toplink" href="光影收藏馆.html">光影收藏馆 ↗</a>
+    <a class="dlbtn" id="dlOffline" data-action="download-offline" href="FilmHou-offline.zip" download="FilmHou-offline.zip" title="下载完整离线包，解压后双击 index.html 即可使用">下载离线包 ↓</a>
     <button class="add-btn" data-action="open-form" title="录入新镜头">＋</button>
   </header>
 
@@ -920,6 +926,30 @@ var LIB = {"shots":[{"id":"S01","group":"心理冲击","name":"希区柯克变�
   function toast(msg){
     var el=$("#toast"); el.textContent=msg; el.classList.add("show");
     clearTimeout(toastTimer); toastTimer=setTimeout(function(){ el.classList.remove("show"); },2000);
+  }
+  /* ---------- 离线包下载：线上取 ZIP，本地 / 站点没放 ZIP 时降级另存单文件 ---------- */
+  var OFFLINE_ZIP="FilmHou-offline.zip";
+  function saveSelfHtml(){
+    try{
+      var clone=document.documentElement.cloneNode(true);
+      var tt=clone.querySelector("#toast"); if(tt){ tt.className="toast"; tt.textContent=""; }
+      [].forEach.call(clone.querySelectorAll(".overlay.show"),function(o){ o.classList.remove("show"); });
+      var blob=new Blob(["<!DOCTYPE html>\n"+clone.outerHTML],{type:"text/html;charset=utf-8"});
+      var u=URL.createObjectURL(blob), a=document.createElement("a");
+      a.href=u; a.download="镜库.html"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); },4000);
+      toast("已另存 镜库.html");
+    }catch(err){ toast("保存失败，请按 Ctrl+S 另存本页"); }
+  }
+  function downloadOffline(e){
+    e.preventDefault();
+    if(location.protocol==="file:"){ saveSelfHtml(); return; }
+    fetch(OFFLINE_ZIP,{method:"HEAD"}).then(function(r){
+      if(!r.ok){ saveSelfHtml(); return; }
+      var a=document.createElement("a");
+      a.href=OFFLINE_ZIP; a.download=OFFLINE_ZIP;
+      document.body.appendChild(a); a.click(); a.remove();
+    }).catch(function(){ saveSelfHtml(); });
   }
   function copy(text,label){
     if(!text){ toast("这条还没有填"+label); return; }
@@ -1890,6 +1920,7 @@ var LIB = {"shots":[{"id":"S01","group":"心理冲击","name":"希区柯克变�
     if(!el) return;
     var a=el.getAttribute("data-action"), id=el.getAttribute("data-id");
     if(a==="nav"){ goScreen(el.getAttribute("data-screen")); }
+    else if(a==="download-offline"){ downloadOffline(e); }
     else if(a==="filter"){
       var k=el.getAttribute("data-key"), v=el.getAttribute("data-v");
       state[k]=v; renderFilters(); renderShots();

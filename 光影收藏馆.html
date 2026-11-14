@@ -609,6 +609,26 @@ input,select,textarea{border:1px solid var(--line)!important}
   background:var(--panel);border-radius:9px;padding:8px 11px;margin:0 0 10px}
 .pmiss[hidden]{display:none}
 .pmiss span{color:var(--ink);opacity:.82}
+/* ===== 片单 / 手法 / 导演：搜索、＋ 卡、自建标记 ===== */
+#screen-tech .searchbar,#screen-films .searchbar,#screen-directors .searchbar{
+  margin:6px 0 12px;
+}
+#screen-tech .searchbar input,#screen-films .searchbar input,#screen-directors .searchbar input{
+  min-width:220px;
+}
+.tech-grid .addcard{min-height:220px}
+.tech-card{position:relative}
+.tech-card:hover .del-x{display:flex}
+.ownmark{display:inline-flex;align-self:flex-start;align-items:center;
+  background:var(--accent-soft);color:var(--accent);
+  font-size:10px;font-weight:800;letter-spacing:.4px;
+  border-radius:8px;padding:3px 8px;margin:0 0 6px}
+.film-card .ownmark{margin-bottom:2px}
+.just-added{animation:justadded 1.8s ease-out}
+@keyframes justadded{
+  0%{background:var(--accent-soft)!important;box-shadow:0 0 0 6px var(--accent-soft)!important}
+  100%{background:var(--card)!important;box-shadow:none!important}
+}
 /* THEME:END */
 </style>
 </head>

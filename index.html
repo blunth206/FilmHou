@@ -36,6 +36,11 @@
     display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
   .dlbtn:active{transform:scale(.96)}
   @media(max-width:768px){.dlbtn{font-size:11px;padding:7px 10px}}
+  .demobody{padding:4px 22px 24px}
+  .demobody .dlead{font-size:15px;font-weight:700;line-height:1.8;color:var(--ink);margin:0 0 18px}
+  .demoacts{display:flex;gap:10px;flex-wrap:wrap}
+  .demoacts .btn{flex:1;min-width:150px}
+  @media(max-width:520px){.demobody{padding:4px 16px 20px}.demobody .dlead{font-size:14px}}
   .add-btn{flex:0 0 auto;width:40px;height:40px;border-radius:12px;border:none;cursor:pointer;
     background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;font-size:24px;line-height:1;
     display:grid;place-items:center;box-shadow:0 4px 14px rgba(229,9,20,.45)}
@@ -821,6 +826,20 @@ input,select,textarea{border:1px solid var(--line)!important}
   <div class="sheet guide-sheet" id="guideSheet"></div>
 </div>
 
+<!-- 线上演示提示：只在 http(s) 站点显示，本地离线包不显示 -->
+<div class="overlay" id="demoOverlay">
+  <div class="sheet" id="demoSheet">
+    <h3><span>演示站点</span><button class="x" data-action="close-demo">✕</button></h3>
+    <div class="demobody">
+      <p class="dlead">此网页仅供演示。如需实际使用请下载到本地，否则编辑的数据会丢失</p>
+      <div class="demoacts">
+        <button class="btn primary" data-action="demo-download">下载离线包 ↓</button>
+        <button class="btn ghost" data-action="close-demo">继续浏览</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 拉片页：手法解读 / 镜头案例 / 我要提示词 / 我的想法 -->
 <div class="overlay detail" id="labOverlay">
   <div class="sheet" id="labSheet"></div>
@@ -950,6 +969,19 @@ var LIB = {"shots":[{"id":"S01","group":"心理冲击","name":"希区柯克变�
       a.href=OFFLINE_ZIP; a.download=OFFLINE_ZIP;
       document.body.appendChild(a); a.click(); a.remove();
     }).catch(function(){ saveSelfHtml(); });
+  }
+  /* ---------- 线上演示提示：本地离线包 / 本机服务器不显示 ---------- */
+  var DEMO_KEY="filmhou_demo_notice_v1";
+  function demoShouldShow(){
+    if(location.protocol==="file:") return false;
+    var h=location.hostname||"";
+    if(h==="localhost"||h==="127.0.0.1"||/^192\.168\./.test(h)||/^10\./.test(h)) return false;
+    try{ return sessionStorage.getItem(DEMO_KEY)!=="1"; }catch(err){ return true; }
+  }
+  function showDemo(){ if(demoShouldShow()) $("#demoOverlay").classList.add("show"); }
+  function closeDemo(){
+    $("#demoOverlay").classList.remove("show");
+    try{ sessionStorage.setItem(DEMO_KEY,"1"); }catch(err){}
   }
   function copy(text,label){
     if(!text){ toast("这条还没有填"+label); return; }
@@ -1921,6 +1953,8 @@ var LIB = {"shots":[{"id":"S01","group":"心理冲击","name":"希区柯克变�
     var a=el.getAttribute("data-action"), id=el.getAttribute("data-id");
     if(a==="nav"){ goScreen(el.getAttribute("data-screen")); }
     else if(a==="download-offline"){ downloadOffline(e); }
+    else if(a==="demo-download"){ closeDemo(); downloadOffline(e); }
+    else if(a==="close-demo"){ closeDemo(); }
     else if(a==="filter"){
       var k=el.getAttribute("data-key"), v=el.getAttribute("data-v");
       state[k]=v; renderFilters(); renderShots();
@@ -2126,6 +2160,7 @@ var LIB = {"shots":[{"id":"S01","group":"心理冲击","name":"希区柯克变�
     else if(e.target && e.target.id==="dirForm") submitDirForm(e);
   });
   document.addEventListener("keydown",function(e){
+    if(e.key==="Escape" && $("#demoOverlay").classList.contains("show")){ closeDemo(); return; }
     if(e.key==="Escape" && $("#detailOverlay").classList.contains("show") && state.detailFs){
       state.detailFs=false; writeJson(KEY_FS,0); applyDetailFs(); return;
     }
@@ -2172,6 +2207,7 @@ var LIB = {"shots":[{"id":"S01","group":"心理冲击","name":"希区柯克变�
   snapshotPrompts();
   applyPromptOverrides();
   renderAll();
+  showDemo();
 })();
 </script>
 <script>/* THEME-JS:BEGIN */
